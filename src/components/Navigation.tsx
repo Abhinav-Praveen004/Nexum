@@ -25,6 +25,7 @@ export function Navigation() {
   const router = useRouter()
   const [isOpen, setIsOpen] = React.useState(false)
   const [user, setUser] = React.useState<User | null>(null)
+  const [userPhoto, setUserPhoto] = React.useState<string | null>(null)
   const [showDropdown, setShowDropdown] = React.useState(false)
   
   const supabase = createClient()
@@ -42,6 +43,34 @@ export function Navigation() {
 
     return () => subscription.unsubscribe()
   }, [supabase.auth])
+
+  React.useEffect(() => {
+    if (!user) {
+      setUserPhoto(null)
+      return
+    }
+
+    const displayName = user.user_metadata?.display_name 
+      || user.user_metadata?.full_name 
+      || user.user_metadata?.name 
+      || (user.email ? user.email.split('@')[0] : "")
+
+    const fetchPhoto = async () => {
+      const { data } = await supabase.from('team_members').select('name, photo_url')
+      if (data) {
+        const searchName = displayName.toLowerCase().replace(/[^a-z0-9]/g, '')
+        // We match by checking if the user email/display name contains their first name
+        const match = data.find(m => {
+          const firstName = m.name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+          return searchName.includes(firstName)
+        })
+        if (match && match.photo_url) {
+          setUserPhoto(match.photo_url)
+        }
+      }
+    }
+    fetchPhoto()
+  }, [user, supabase])
 
   React.useEffect(() => {
     setIsOpen(false)
@@ -110,10 +139,14 @@ export function Navigation() {
               <div className="relative">
                 <button 
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-2 text-sm font-medium text-neutral-900 dark:text-white hover:text-brand-emerald transition-colors outline-none"
+                  className="flex items-center gap-3 text-base font-medium text-neutral-900 dark:text-white hover:text-brand-emerald transition-colors outline-none"
                 >
-                  <div className="w-6 h-6 rounded-full bg-brand-emerald/20 text-brand-emerald flex items-center justify-center">
-                    <UserIcon size={12} />
+                  <div className="w-10 h-10 rounded-full bg-brand-emerald/20 text-brand-emerald flex items-center justify-center overflow-hidden border border-brand-emerald/30">
+                    {userPhoto ? (
+                      <Image src={userPhoto} alt={userDisplayName} width={40} height={40} className="object-cover w-full h-full" />
+                    ) : (
+                      <UserIcon size={20} />
+                    )}
                   </div>
                   {userDisplayName}
                 </button>
@@ -182,9 +215,13 @@ export function Navigation() {
                 </Link>
               ) : (
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 text-lg font-medium text-neutral-900 dark:text-white">
-                    <div className="w-8 h-8 rounded-full bg-brand-emerald/20 text-brand-emerald flex items-center justify-center">
-                      <UserIcon size={16} />
+                  <div className="flex items-center gap-4 text-xl font-medium text-neutral-900 dark:text-white">
+                    <div className="w-12 h-12 rounded-full bg-brand-emerald/20 text-brand-emerald flex items-center justify-center overflow-hidden border border-brand-emerald/30">
+                      {userPhoto ? (
+                        <Image src={userPhoto} alt={userDisplayName} width={48} height={48} className="object-cover w-full h-full" />
+                      ) : (
+                        <UserIcon size={24} />
+                      )}
                     </div>
                     {userDisplayName}
                   </div>
