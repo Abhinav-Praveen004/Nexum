@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Card } from "@/components/shared/Card"
 import { Button } from "@/components/shared/Button"
 import { ArrowUp, ArrowDown, Edit2, Plus, Trash2, X, Image as ImageIcon, CheckCircle2, Loader2, AlertCircle } from "lucide-react"
+import Link from "next/link"
 
 type Day = {
   day_number: number
@@ -355,7 +356,7 @@ export function TimeCapsuleEditor({ initialDays, initialEntries, userId }: { ini
                         Completed Memory
                       </span>
                       <span className="block text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        The team has confirmed this actually happened. Unchecking this sets it back to "Upcoming".
+                        The team has confirmed this actually happened. Unchecking this sets it back to &quot;Upcoming&quot;.
                       </span>
                     </div>
                   </label>
@@ -424,12 +425,17 @@ export function TimeCapsuleEditor({ initialDays, initialEntries, userId }: { ini
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-heading text-xl font-bold">Timeline Entries</h2>
-            <Button onClick={() => {
-              setEditingEntry({ day_number: 1, entry_type: 'activity' })
-              setEntryConfirmed(false)
-            }} className="bg-brand-emerald text-white gap-2">
-              <Plus size={16} /> Add Entry
-            </Button>
+            <div className="flex gap-4">
+              <Button asChild variant="secondary">
+                <Link href="/admin">Back to Dashboard</Link>
+              </Button>
+              <Button onClick={() => {
+                setEditingEntry({ day_number: 1, entry_type: 'activity' })
+                setEntryConfirmed(false)
+              }} className="bg-brand-emerald text-white gap-2">
+                <Plus size={16} /> Add Entry
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-8">

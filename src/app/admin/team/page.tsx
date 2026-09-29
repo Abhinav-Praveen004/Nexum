@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Users, Pencil } from "lucide-react"
 import { Card } from "@/components/shared/Card"
+import { Button } from "@/components/shared/Button"
 
 function getInitials(name: string) {
   return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
@@ -25,18 +26,25 @@ export default async function AdminTeamPage() {
   const members = await getTeamMembers()
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-brand-emerald/10 text-brand-emerald rounded-lg">
-          <Users size={24} />
+    <div className="max-w-6xl mx-auto py-12 md:py-16 min-h-screen px-4 md:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-brand-emerald/10 text-brand-emerald rounded-lg">
+            <Users size={24} />
+          </div>
+          <div>
+            <h1 className="font-heading text-3xl font-bold text-neutral-900 dark:text-white">
+              Team Profiles
+            </h1>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Manage teammate bios, PDP journeys, and photos.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-neutral-900 dark:text-white">
-            Team Profiles
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Manage teammate bios, PDP journeys, and photos.
-          </p>
+        <div className="flex gap-4">
+          <Button asChild variant="secondary">
+            <Link href="/admin">Back to Dashboard</Link>
+          </Button>
         </div>
       </div>
 

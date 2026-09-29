@@ -8,6 +8,7 @@ import { updateTeamMember } from "@/app/admin/team/actions"
 import { Loader2, Upload, X, CheckCircle2, AlertCircle, ImageIcon } from "lucide-react"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
+import Cropper from "react-easy-crop"
 
 export function TeamMemberEditor({ member }: { member: DbTeamMember }) {
   const [bio, setBio] = useState(member.bio)
@@ -22,6 +23,12 @@ export function TeamMemberEditor({ member }: { member: DbTeamMember }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  
+  // Cropper state
+  const [cropPhotoSrc, setCropPhotoSrc] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   
@@ -89,36 +96,50 @@ export function TeamMemberEditor({ member }: { member: DbTeamMember }) {
       return showFeedback('error', 'Image must be under 5MB.')
     }
 
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCropPhotoSrc(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleCropComplete = async () => {
+    if (!cropPhotoSrc || !croppedAreaPixels) return
+
     setIsUploading(true)
     setFeedback(null)
+    setCropPhotoSrc(null) // Close modal
 
     try {
-      // Very basic client-side downscale attempt using Canvas
       const img = document.createElement('img')
-      img.src = URL.createObjectURL(file)
+      img.src = cropPhotoSrc
       await new Promise(resolve => { img.onload = resolve })
       
       const canvas = document.createElement('canvas')
-      let { width, height } = img
-      const maxDim = 1200
       
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width)
-          width = maxDim
-        } else {
-          width = Math.round((width * maxDim) / height)
-          height = maxDim
-        }
-      }
+      // Target dimensions for the profile picture
+      const targetSize = 800
+      canvas.width = targetSize
+      canvas.height = targetSize
       
-      canvas.width = width
-      canvas.height = height
       const ctx = canvas.getContext('2d')
-      ctx?.drawImage(img, 0, 0, width, height)
+      if (!ctx) throw new Error("Could not get canvas context")
+      
+      ctx.drawImage(
+        img,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        targetSize,
+        targetSize
+      )
       
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas error')), 'image/webp', 0.8)
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas error')), 'image/webp', 0.85)
       })
 
       const fileName = `${member.slug}-${Date.now()}.webp`
@@ -146,7 +167,6 @@ export function TeamMemberEditor({ member }: { member: DbTeamMember }) {
       showFeedback('error', 'Upload failed: ' + err.message)
     } finally {
       setIsUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -369,6 +389,49 @@ export function TeamMemberEditor({ member }: { member: DbTeamMember }) {
           </Button>
         </div>
       </div>
+      
+      {/* Crop Modal */}
+      {cropPhotoSrc && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-brand-black rounded-xl overflow-hidden w-full max-w-2xl flex flex-col">
+            <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
+              <h3 className="font-heading font-semibold text-lg">Crop Profile Photo</h3>
+              <button onClick={() => setCropPhotoSrc(null)} className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="relative h-[400px] md:h-[500px] w-full bg-neutral-100 dark:bg-neutral-900">
+              <Cropper
+                image={cropPhotoSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+                onZoomChange={setZoom}
+              />
+            </div>
+            
+            <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center gap-4 bg-white dark:bg-brand-black">
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-labelledby="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="flex-1 accent-brand-emerald"
+              />
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setCropPhotoSrc(null)}>Cancel</Button>
+                <Button variant="primary" onClick={handleCropComplete}>Crop & Upload</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

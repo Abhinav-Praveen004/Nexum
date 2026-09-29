@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { TimeCapsuleEditor } from "@/components/admin/TimeCapsuleEditor"
+import Link from "next/link"
+import { Button } from "@/components/shared/Button"
 
 export const dynamic = "force-dynamic"
 
@@ -31,7 +33,7 @@ export default async function AdminTimeCapsulePage() {
     .order("created_at", { ascending: true })
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto py-12 md:py-16 min-h-screen px-4 md:px-8">
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-neutral-900 dark:text-white mb-2">
           Time Capsule Management

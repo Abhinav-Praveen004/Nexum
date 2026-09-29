@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Card } from "@/components/shared/Card"
 import { Button } from "@/components/shared/Button"
 import { Check, X, Undo2, Trash2, AlertCircle, CheckCircle2, Loader2, Quote } from "lucide-react"
+import Link from "next/link"
 
 type Message = {
   id: string
@@ -80,30 +81,37 @@ export function AppreciationModerator({ initialMessages, userId }: { initialMess
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-neutral-200 dark:border-neutral-800 mb-8 overflow-x-auto">
-        {(['pending', 'approved', 'rejected'] as const).map(tab => {
-          const count = messages.filter(m => m.status === tab).length
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-4 font-semibold text-sm uppercase tracking-wider whitespace-nowrap border-b-2 transition-colors flex items-center gap-2 ${
-                activeTab === tab 
-                  ? 'border-brand-emerald text-brand-emerald' 
-                  : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-              {tab}
-              <span className={`px-2 py-0.5 rounded-full text-xs ${
-                activeTab === tab 
-                  ? 'bg-brand-emerald/10 text-brand-emerald' 
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-              }`}>
-                {count}
-              </span>
-            </button>
-          )
-        })}
+      <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 mb-8">
+        <div className="flex overflow-x-auto">
+          {(['pending', 'approved', 'rejected'] as const).map(tab => {
+            const count = messages.filter(m => m.status === tab).length
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-6 py-4 font-semibold text-sm uppercase tracking-wider whitespace-nowrap border-b-2 transition-colors flex items-center gap-2 ${
+                  activeTab === tab 
+                    ? 'border-brand-emerald text-brand-emerald' 
+                    : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                {tab}
+                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                  activeTab === tab 
+                    ? 'bg-brand-emerald/10 text-brand-emerald' 
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="hidden sm:block pb-2">
+          <Button asChild variant="secondary">
+            <Link href="/admin">Back to Dashboard</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Message List */}

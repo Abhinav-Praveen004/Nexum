@@ -36,7 +36,7 @@ export async function RecentJournalPreview() {
   
   const { data: articles } = await supabase
     .from('articles')
-    .select('id, title, description, created_at, author, slug')
+    .select('id, title, description, pdp_day, created_at, author, slug')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(3)
@@ -45,17 +45,11 @@ export async function RecentJournalPreview() {
   
   // Map real articles to the shape expected by the UI, or use placeholders
   const entries = hasArticles ? articles.map(article => {
-    // Format date nicely
-    const date = new Date(article.created_at).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    })
-    
     return {
       id: article.slug,
       title: article.title,
       excerpt: article.description,
-      date: date,
+      date: `Day ${article.pdp_day || 1}`,
       author: article.author,
     }
   }) : PLACEHOLDER_ENTRIES
