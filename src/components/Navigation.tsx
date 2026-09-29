@@ -55,7 +55,10 @@ export function Navigation() {
     router.push("/login")
   }
 
-  const userDisplayName = user?.user_metadata?.display_name || "Account"
+  const userDisplayName = user?.user_metadata?.display_name 
+    || user?.user_metadata?.full_name 
+    || user?.user_metadata?.name 
+    || (user?.email ? user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "Account")
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/80 backdrop-blur-md dark:border-neutral-800 dark:bg-brand-black/80">
